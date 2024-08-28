@@ -1,18 +1,28 @@
-﻿using Angel;
+using Angel;
 using Angel.Helpers;
 using Godot;
 using System;
+using System.Runtime.CompilerServices;
 
-[GlobalClass]
-public partial class AngelCamera : Node3D
+public partial class Test : Node3D
 {
-    private SignalManager SignalManager;
-    public override void _Ready() => GetTree().Root.AddChild(this);
-    protected virtual void Enter(Node node) => SignalManager.DbgMsg_ChildEnteringTree(this, node);
+    private SignalManager SignalManager { get => SignalManager.Get(); }
+    // Called when the node enters the scene tree for the first time.
+    public override void _Ready()
+    {
+        //CallDeferred(MethodName.BindSignalsToManager, SignalManager);
+    }
 
-    protected virtual void Exit(Node node) => SignalManager.DbgMsg_ChildExitingTree(this, node);
+    // Called every frame. 'delta' is the elapsed time since the previous frame.
+    public override void _Process(double delta)
+    {
+    }
+    protected virtual void OnVisibilityChanged() => SignalManager.DbgMsg_VisibilityChanged(this);
+    protected virtual void OnChildEnteredTree(Node node) => SignalManager.DbgMsg_ChildEnteringTree(this, node);
 
-    protected virtual void OrderChanged() => SignalManager.DbgMsg_OrderChanged(this);
+    protected virtual void OnChildExitingTree(Node node) => SignalManager.DbgMsg_ChildExitingTree(this, node);
+
+    protected virtual void OnOrderChanged() => SignalManager.DbgMsg_OrderChanged(this);
 
     protected virtual void OnEditorDescriptionChanged(Node node) => SignalManager.DbgMsg_EditorDescriptionChanged(this, node);
 

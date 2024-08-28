@@ -1,0 +1,49 @@
+[gd_scene load_steps=6 format=3 uid="uid://cnu0q6higqgoj"]
+
+[ext_resource type="Script" path="res://TestScenes/Test.cs" id="1_vfb17"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wkxoa"]
+size = Vector3(5, 0.1, 5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_sgu3b"]
+size = Vector3(5, 0.1, 5)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_6ibdv"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_tqq3l"]
+
+[node name="Test" type="Node3D"]
+script = ExtResource("1_vfb17")
+
+[node name="Base" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Base"]
+shape = SubResource("BoxShape3D_wkxoa")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Base/CollisionShape3D"]
+mesh = SubResource("BoxMesh_sgu3b")
+skeleton = NodePath("../..")
+
+[node name="Ball" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ball"]
+shape = SubResource("SphereShape3D_6ibdv")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ball/CollisionShape3D"]
+mesh = SubResource("SphereMesh_tqq3l")
+skeleton = NodePath("../..")
+
+[connection signal="child_entered_tree" from="." to="." method="OnChildEnteredTree"]
+[connection signal="child_exiting_tree" from="." to="." method="OnChildExitingTree"]
+[connection signal="child_order_changed" from="." to="." method="OnOrderChanged"]
+[connection signal="editor_description_changed" from="." to="." method="OnEditorDescriptionChanged"]
+[connection signal="property_list_changed" from="." to="." method="OnPropertyListChanged"]
+[connection signal="ready" from="." to="." method="OnReady"]
+[connection signal="renamed" from="." to="." method="OnRenamed"]
+[connection signal="replacing_by" from="." to="." method="OnReplacing"]
+[connection signal="script_changed" from="." to="." method="OnScriptChanged"]
+[connection signal="tree_entered" from="." to="." method="OnEnteredTree"]
+[connection signal="tree_exited" from="." to="." method="OnExitedTree"]
+[connection signal="tree_exiting" from="." to="." method="OnTreeExiting"]
+[connection signal="visibility_changed" from="." to="." method="OnVisibilityChanged"]

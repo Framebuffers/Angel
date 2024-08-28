@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="Angel"
-run/main_scene="res://TestScenes/SCN01.tscn"
+run/main_scene="res://TestScenes/Test.tscn"
 config/features=PackedStringArray("4.3", "C#", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+SignalManager="*res://SignalManager.cs"
 
 [dotnet]
 

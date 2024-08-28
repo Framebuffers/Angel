@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://c6vy00pn4y822"]
+
+[ext_resource type="Script" path="res://AngelCamera.cs" id="1_u02vc"]
+
+[node name="Camera" type="Node3D"]
+script = ExtResource("1_u02vc")
+
+[connection signal="child_entered_tree" from="." to="." method="EnterTree"]
+[connection signal="child_exiting_tree" from="." to="." method="ExitTree"]
