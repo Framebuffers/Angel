@@ -1,5 +1,5 @@
-﻿using Angel;
-using Angel.Helpers;
+﻿using ThirdPersonCamera;
+using ThirdPersonCamera.Helpers;
 using ConsoleTables;
 using Godot;
 using System;
@@ -42,6 +42,7 @@ public partial class AngelCamera : Node3D
     private Camera3D.DopplerTrackingEnum dopplerTracking = Camera3D.DopplerTrackingEnum.Disabled;
     private uint cullMask = 1048575;
     private float initialDiveAngle = -45.0f;
+    private float springArmLength = 10.0f;
 
     /// <summary>
     /// Mapped property of <see cref="Camera3D.Projection"/>
@@ -56,7 +57,7 @@ public partial class AngelCamera : Node3D
         set
         {
             projectionType = value;
-            
+            camera.Projection = value;
         }
     }
 
@@ -127,6 +128,7 @@ public partial class AngelCamera : Node3D
         set
         {
             keepAspect = value;
+            camera.KeepAspect = value;
         }
     }
 
@@ -144,6 +146,7 @@ public partial class AngelCamera : Node3D
         set
         {
             dopplerTracking = value;
+            camera.DopplerTracking = value;
         }
     }
 
@@ -256,13 +259,13 @@ public partial class AngelCamera : Node3D
     {
         get
         {
-            return springArm.SpringLength;
+            return springArmLength;
         }
 
         set
         {
-            Variant v = value;
-            SetWhenReady(springArm, SpringArm3D.PropertyName.SpringLength, v);
+            springArmLength = value;
+            SetWhenReady(springArm, SpringArm3D.PropertyName.SpringLength, springArmLength);
         }
     }
 
@@ -272,6 +275,8 @@ public partial class AngelCamera : Node3D
     // Main thread
     public override void _Process(double delta)
     {
+        UpdateCamera();
+        UpdateEditor();
         TweenGizmo();
         TweenCameraToMarker();
         SetOffsetPosition();
@@ -328,6 +333,24 @@ public partial class AngelCamera : Node3D
 
         // Check if DebugGizmo is enabled.
         if (EnableGizmo) gizmo = GetNode<MeshInstance3D>("DebugGizmo");
+        MapCamera();
+    }
+
+    private void MapCamera()
+    {
+        current = camera.Current;
+        keepAspect = camera.KeepAspect;
+        cullMask = camera.CullMask;
+        dopplerTracking = camera.DopplerTracking;
+        projectionType = camera.Projection;
+        fov = camera.Fov;
+        near = camera.Near;
+        far = camera.Far;
+     
+        springArmCollissionMask = (int)springArm.CollisionMask;
+        springArmCollissionMargin = (uint)springArm.Margin;
+        springArmLength = springArm.SpringLength;
+
     }
 
     /// <summary>
@@ -359,6 +382,59 @@ public partial class AngelCamera : Node3D
 
     // --------------------------------------------------------------------------------
     // Processing
+
+    private void UpdateEditor()
+    {
+        if (Engine.IsEditorHint())
+        {
+            CreateTree();
+            var a = new Vector3(0.0f, 0.0f, 1.0f);
+            var rotationA = new Vector3(1.0f, 0.0f, 0.0f);
+            var rotationB = Mathf.DegToRad(InitialDiveAngle);
+            var rotationC = Mathf.DegToRad(-HorizontalRotationAngle);
+
+            Vector3 cameraMarkerGlobalPosition =
+                    (a.Rotated(axis: rotationA,
+                    angle: (float)rotationB)
+                    .Rotated(
+                        axis: new Vector3(x: 0.0f, y: 1.0f, z: 0.0f),
+                        angle: (float)rotationC)
+                    * springArm.SpringLength) + springArm.GlobalPosition;
+
+            cameraMarker.GlobalPosition = cameraMarkerGlobalPosition;
+        }
+    }
+
+    private async void UpdateCamera()
+    {
+        void update()
+        {
+            camera.KeepAspect = keepAspect;
+            camera.DopplerTracking = dopplerTracking;
+            camera.Projection = projectionType;
+            camera.Set(Camera3D.PropertyName.CullMask, cullMask);
+            camera.Set(Camera3D.PropertyName.Fov, fov);
+            camera.Set(Camera3D.PropertyName.Far, far);
+            camera.Set(Camera3D.PropertyName.Near, near);
+            $"\tCamera updated".ToConsole();
+        }
+
+        if (IsNodeReady())
+        {
+            if (!camera.IsNodeReady() && camera != null)
+            {
+                "Node is not ready. Awaiting...".ToConsole();
+                await ToSignal(this, SignalName.Ready);
+                "Node is ready.".ToConsole();
+                update();
+            }
+            else
+            {
+                update();
+            }
+        }
+    }
+
     /// <summary>
     /// If <see cref="EnableGizmo"/> is true, tweens the gizmo to the Camera's rotation.
     /// </summary>

@@ -1,8 +1,8 @@
-[gd_scene load_steps=9 format=3 uid="uid://cnu0q6higqgoj"]
+[gd_scene load_steps=12 format=3 uid="uid://cnu0q6higqgoj"]
 
 [ext_resource type="Script" path="res://TestScenes/Test.cs" id="1_vfb17"]
 [ext_resource type="Script" path="res://TestScenes/Ball.cs" id="2_6wy4h"]
-[ext_resource type="Script" path="res://AngelCamera.cs" id="3_jr33o"]
+[ext_resource type="Script" path="res://Objects/Camera.cs" id="3_617h4"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wkxoa"]
 size = Vector3(5, 0.1, 5)
@@ -18,6 +18,13 @@ size = Vector3(5, 0.1, 5)
 top_radius = 0.0
 height = 1.0
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_dagxh"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_nxguu"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3b6d8"]
+albedo_color = Color(1, 0, 1, 1)
+
 [node name="Test" type="Node3D"]
 script = ExtResource("1_vfb17")
 
@@ -31,7 +38,7 @@ mesh = SubResource("BoxMesh_sgu3b")
 skeleton = NodePath("../..")
 
 [node name="Ball" type="CharacterBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03, 0.64, 0.875)
+transform = Transform3D(1.00235, 0, 0, 0, 1.00235, 0, 0, 0, 1.00235, 0.8, 0.64, 0.27)
 script = ExtResource("2_6wy4h")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ball"]
@@ -45,8 +52,7 @@ skeleton = NodePath("../..")
 
 [node name="Camera" type="Node3D" parent="Ball"]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 2.5, 2.5)
-script = ExtResource("3_jr33o")
-EnableGizmo = false
+script = ExtResource("3_617h4")
 
 [node name="DebugGizmo" type="MeshInstance3D" parent="Ball/Camera"]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
@@ -54,6 +60,16 @@ mesh = SubResource("CylinderMesh_x0puc")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="Ball/Camera"]
 transform = Transform3D(1, 0, 0, 0, 1, -8.9407e-08, 0, 1.19209e-07, 1, 0, 0, 0)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(1.02427, 0, 0, 0, 1.02427, 0, 0, 0, 1.02427, -0.85, 0.562134, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("BoxShape3D_dagxh")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D/CollisionShape3D"]
+mesh = SubResource("BoxMesh_nxguu")
+surface_material_override/0 = SubResource("StandardMaterial3D_3b6d8")
 
 [connection signal="child_entered_tree" from="." to="." method="OnChildEnteredTree"]
 [connection signal="child_exiting_tree" from="." to="." method="OnChildExitingTree"]
