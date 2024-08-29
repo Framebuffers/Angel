@@ -31,7 +31,7 @@ mesh = SubResource("BoxMesh_sgu3b")
 skeleton = NodePath("../..")
 
 [node name="Ball" type="CharacterBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.105, 0.57, 0.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03, 0.64, 0.875)
 script = ExtResource("2_6wy4h")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ball"]
@@ -44,17 +44,16 @@ skeleton = NodePath("../..")
 [node name="Pivot" type="Node3D" parent="Ball"]
 
 [node name="Camera" type="Node3D" parent="Ball"]
-transform = Transform3D(-0.748447, 0.288321, -0.635601, 0, 0.931969, 0.42276, 0.697938, 0.309187, -0.681599, -1.82, 0.65, -0.605)
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 2.5, 2.5)
 script = ExtResource("3_jr33o")
 EnableGizmo = false
-InitialDiveAngle = 2.421
-TiltLowerLimit = -29.638
-TiltUpperLimit = -54.941
-Distance = 2.965
 
 [node name="DebugGizmo" type="MeshInstance3D" parent="Ball/Camera"]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
 mesh = SubResource("CylinderMesh_x0puc")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Ball/Camera"]
+transform = Transform3D(1, 0, 0, 0, 1, -8.9407e-08, 0, 1.19209e-07, 1, 0, 0, 0)
 
 [connection signal="child_entered_tree" from="." to="." method="OnChildEnteredTree"]
 [connection signal="child_exiting_tree" from="." to="." method="OnChildExitingTree"]

@@ -23,30 +23,177 @@ using System.Threading.Tasks;
 [GlobalClass]
 public partial class AngelCamera : Node3D
 {
-    // todo: implement a way to debug values when they change.
-    [Signal]
-    public delegate void ValueChangedEventHandler(string name, string[] values);
-
+    private Camera3D camera;
     private Vector3 ParentCoordinates;
     private SpringArm3D springArm;
     private Node3D rotationPivot;
     private Node3D offsetPivot;
     private Marker3D cameraMarker;
-    private Camera3D camera;
     private MeshInstance3D gizmo;
+
+    // --------------------------------------------------------------------------------
+    // Camera
+    private double fov = 75.0;
+    private bool current = false;
+    private Camera3D.ProjectionType projectionType = Camera3D.ProjectionType.Perspective;
+    private double near = 0.05;
+    private double far = 4000.0;
+    private Camera3D.KeepAspectEnum keepAspect = Camera3D.KeepAspectEnum.Height;
+    private Camera3D.DopplerTrackingEnum dopplerTracking = Camera3D.DopplerTrackingEnum.Disabled;
+    private uint cullMask = 1048575;
     private float initialDiveAngle = -45.0f;
 
     /// <summary>
-    /// Debug mesh. Base points towards the Camera's viewpoint.
+    /// Mapped property of <see cref="Camera3D.Projection"/>
     /// </summary>
     [Export]
-    public bool EnableGizmo { get; set; } = true;
+    public Camera3D.ProjectionType ProjectionType 
+    { 
+        get
+        {
+            return projectionType;
+        }
+        set
+        {
+            projectionType = value;
+            
+        }
+    }
 
+
+    /// <summary>
+    /// Mapped property from <see cref="Camera3D.Fov"/>
+    /// </summary>
+    [Export(PropertyHint.Range, "1.0, 179.0, 0.1, suffix:d")]
+    public double Fov 
+    { 
+        get
+        {
+            return fov;
+        }
+        set
+        {
+            fov = value;
+            SetWhenReady(camera, Camera3D.PropertyName.Fov, value);
+        }
+    }
+
+    /// <summary>
+    /// Mapped property from <see cref="Camera3D.Near"/>
+    /// </summary>
+    [Export]
+    public double Near
+    {
+        get
+        {
+            return near;
+        }
+        set
+        {
+            near = value;
+            SetWhenReady(camera, Camera3D.PropertyName.Near, value);
+        }
+    }
+
+    /// <summary>
+    /// Mapped property from <see cref="Camera3D.Far"/>
+    /// </summary>
+    [Export]
+    public double Far
+    {
+        get
+        {
+            return far;
+        }
+        set
+        {
+            far = value;
+            SetWhenReady(camera, Camera3D.PropertyName.Far, value);
+        }
+    }
+
+    /// <summary>
+    /// Mapped property from <see cref="Camera3D.KeepAspect"/>
+    /// </summary>
+    [ExportCategory("Camera3D")]
+    [Export]
+    public Camera3D.KeepAspectEnum KeepAspect
+    {
+        get
+        {
+            return keepAspect;
+        }
+
+        set
+        {
+            keepAspect = value;
+        }
+    }
+
+    /// <summary>
+    /// Mapped property from <see cref="Camera3D.DopplerTracking"/>
+    /// </summary>
+    [Export]
+    public Camera3D.DopplerTrackingEnum DopplerTracking
+    {
+        get
+        {
+            return dopplerTracking;
+        }
+
+        set
+        {
+            dopplerTracking = value;
+        }
+    }
+
+    /// <summary>
+    /// Mapped property of <see cref="Camera3D.CullMask"/>
+    /// </summary>
+    [Export(PropertyHint.Layers3DRender)]
+    public uint CullMask
+    {
+        get
+        {
+            return cullMask;
+        }
+
+        set
+        {
+            cullMask = value;
+            SetWhenReady(camera, Camera3D.PropertyName.CullMask, value);
+        }
+    }
+
+    // --------------------------------------------------------------------------------
+    // Rotation and position
     /// <summary>
     /// Offset coordinates from the pivot marker.
     /// </summary>
     [Export]
     public Vector2 PivotOffset { get; set; } = Vector2.Zero;
+
+    [Export(PropertyHint.Range, "-90.0,90.0")]
+    public float TiltLowerLimit { get; set; } = -60.0f;
+
+    [Export(PropertyHint.Range, "-90.0,90.0")]
+    public float TiltUpperLimit { get; set; } = 60.0f;
+
+    [Export(PropertyHint.Range, "1.0,1000.0")]
+    public float HorizontalRotationSensitivity { get; set; } = 10.0f;
+    [Export(PropertyHint.Range, "1.0,1000.0")]
+    public float TiltSensitivity { get; set; } = 10.0f;
+
+    [Export(PropertyHint.Range, "-90.0,90.0")]
+    public float HorizontalRotationAngle { get; set; } = -45.0f;
+    [Export(PropertyHint.Range, "-90.0,90.0")]
+    public float CameraTiltAngle { get; set; } = 0.0f;
+
+    /// <summary>
+    /// Speed at which <see cref="activeCamera"/> will traslate between points. This will speed up or slow down any rotation and 
+    /// </summary>
+    [Export(PropertyHint.Range, "0.1,1")]
+    public float CameraSpeed { get; set; } = 0.1f;
 
     /// <summary>
     /// RotationPivot X axis. Defines the angle against the Player on which the Camera will start pointing at.
@@ -66,20 +213,85 @@ public partial class AngelCamera : Node3D
         }
     }
 
+    // --------------------------------------------------------------------------------
+    // SpringArm
+    private int springArmCollissionMask = 1;
+    [Export(PropertyHint.Layers3DRender)]
+    public int SpringArmCollissionMask
+    {
+        get
+        {
+            return springArmCollissionMask;
+        }
+        set
+        {
+            springArmCollissionMask = value;
+            SetWhenReady(springArm, SpringArm3D.PropertyName.CollisionMask, value);
+        }
+    }
 
+    private float springArmCollissionMargin = 0.01f;
+    /// <summary>
+    /// Property matching <see cref="SpringArm3D.Margin"/>.
+    /// </summary>
+    [Export(PropertyHint.Range, "0.0, 100.0, 0.01, or_greater, or_less, hide_slider, suffix:m")]
+    public float SpringArmCollissionMargin
+    {
+        get
+        {
+            return springArmCollissionMargin;
+        }
+        set
+        {
+            springArmCollissionMargin = value;
+            SetWhenReady(springArm, SpringArm3D.PropertyName.Margin, value);
+        }
+    }
 
-    [Export(PropertyHint.Range, "-90.0,90.0")]
-    public float TiltLowerLimit { get; set; } = -60.0f;
+    /// <summary>
+    /// SpringArm distance parameter.
+    /// </summary>
+    [Export]
+    float SpringArmDistance
+    {
+        get
+        {
+            return springArm.SpringLength;
+        }
 
-    [Export(PropertyHint.Range, "-90.0,90.0")]
-    public float TiltUpperLimit { get; set; } = 60.0f;
+        set
+        {
+            Variant v = value;
+            SetWhenReady(springArm, SpringArm3D.PropertyName.SpringLength, v);
+        }
+    }
 
-    [Export(PropertyHint.Range, "1.0,1000.0")]
-    public float HorizontalRotationSensitivity { get; set; } = 10.0f;
+    // --------------------------------------------------------------------------------
+    // Methods
+    // --------------------------------------------------------------------------------
+    // Main thread
+    public override void _Process(double delta)
+    {
+        TweenGizmo();
+        TweenCameraToMarker();
+        SetOffsetPosition();
+        SetRotationPivot();
+        ProcessTiltInput();
+        ProcessHorizontalRotationInput();
+        UpdateCameraTilt();
+        UpdateCameraHorizontalRotation();
+    }
 
-    [Export(PropertyHint.Range, "-90.0,90.0")]
-    public float HorizontalRotationAngle { get; set; } = -45.0f;
+    /// <summary>
+    /// On ready, it creates the tree with all nodes. Then after each frame, values are refreshed.
+    /// </summary>
+    public override void _Ready()
+    {
+        CallDeferred(MethodName.CreateTree);
+    }
 
+    // --------------------------------------------------------------------------------
+    // Creational
     /// <summary>
     /// Creates necessary to initialise the third person camera.
     ///
@@ -119,6 +331,35 @@ public partial class AngelCamera : Node3D
     }
 
     /// <summary>
+    /// Waits until a node is ready, and sets a value inside a Node's property. Executes asyncronously.
+    /// </summary>
+    /// <param name="n">Node to set a property in.</param>
+    /// <param name="property">Property to change.</param>
+    /// <param name="value">Value to set.</param>
+    async void SetWhenReady(Node n, StringName property, Variant value)
+    {
+        if (IsNodeReady())
+        {
+            if (!n.IsNodeReady() && n != null)
+            {
+                "Node is not ready. Awaiting...".ToConsole();
+                await ToSignal(this, SignalName.Ready);
+                "Node is ready.".ToConsole();
+                n.Set(property, value);
+                $"\t{property} = {n.Get(property)} set".ToConsole();
+            }
+            else
+            {
+                $"Node is ready.".ToConsole();
+                n.Set(property, value);
+                $"\t{property} = {value} set".ToConsole();
+            }
+        }
+    }
+
+    // --------------------------------------------------------------------------------
+    // Processing
+    /// <summary>
     /// If <see cref="EnableGizmo"/> is true, tweens the gizmo to the Camera's rotation.
     /// </summary>
     private void TweenGizmo()
@@ -153,6 +394,9 @@ public partial class AngelCamera : Node3D
         rotationPivotPosition.X = InitialDiveAngle;
     }
 
+    /// <summary>
+    /// Processes lateral camera movement.
+    /// </summary>
     private void ProcessHorizontalRotationInput()
     {
         if (InputMap.HasAction("tp_camera_right") && InputMap.HasAction("tp_camera_left"))
@@ -163,13 +407,52 @@ public partial class AngelCamera : Node3D
         }
     }
 
+    /// <summary>
+    /// Processes vertical camera movement. Angle is always between upper and lower limits.
+    /// </summary>
     private void ProcessTiltInput()
     {
+        if (InputMap.HasAction("tp_camera_up") && InputMap.HasAction("tp_camera_down"))
+        {
+            float tiltVariation = Input.GetActionStrength("tp_camera_up") - Input.GetActionStrength("tp_camera_down");
+            tiltVariation = tiltVariation * (float)GetProcessDeltaTime() * 5 * TiltSensitivity;
+            CameraTiltAngle = Math.Clamp(CameraTiltAngle + tiltVariation, TiltLowerLimit - InitialDiveAngle, TiltUpperLimit - InitialDiveAngle);
+        }
+    }
 
+    private void UpdateCameraTilt()
+    {
+        // Clamps current value between the limits.
+        var finalTiltValue = Mathf.Clamp(InitialDiveAngle + CameraTiltAngle, TiltLowerLimit, TiltUpperLimit);
+
+        // Interpolates the X angle to the final calculated value in 0.1 seconds.
+        var tween = CreateTween();
+        tween.TweenProperty(camera, "global_rotation_degrees:x", finalTiltValue, 0.1);
+    }
+
+    // needs some review
+    private void UpdateCameraHorizontalRotation()
+    {
+        var tween = CreateTween();
+        tween.TweenProperty(rotationPivot, "global_rotation_degrees:y", HorizontalRotationAngle * -1, 0.1).AsRelative();
+        HorizontalRotationAngle = 0.0f; // reset value
+        
+        // check this part here.
+        // Calculates a normalized vector between the camera and the offset pivot X and Z.
+        Vector2 vectToOffsetPivot = 
+            // offsetPivotX,Y
+            (new Vector2(offsetPivot.GlobalPosition.X, offsetPivot.GlobalPosition.Z) 
+            // cameraX,Y
+            - new Vector2(camera.GlobalPosition.X, camera.GlobalPosition.Z))
+            .Normalized();
+
+        // assign to Y.
+        var cameraRotationY = camera.GlobalRotation.Y;
+        cameraRotationY = -new Vector2(0.0f, -1.0f).AngleTo(vectToOffsetPivot.Normalized());
     }
 
     /// <summary>
-    /// 
+    /// Tweens camera to the marker inside the SpringArm.
     /// </summary>
     private void TweenCameraToMarker()
     {
@@ -179,92 +462,41 @@ public partial class AngelCamera : Node3D
         cameraPosition.Y = Mathf.Lerp(cameraPosition.Y, markerPosition.Y, 10);
         cameraPosition.Z = Mathf.Lerp(cameraPosition.Z, markerPosition.Z, 10);
     }
+}
 
+// Debugging
+public partial class AngelCamera
+{
+    // --------------------------------------------------------------------------------
+    // Debug
+    /// <summary>
+    /// Debug mesh. Base points towards the Camera's viewpoint.
+    /// </summary>
     [Export]
-    float Distance
-    {
-        get => springArm.SpringLength;
-        set
-        {
-            Variant v = value;
-            SetWhenReady(springArm, SpringArm3D.PropertyName.SpringLength, v);
-        }
-    }
+    public bool EnableGizmo { get; set; } = true;
 
-    async void SetWhenReady(Node n, StringName property, Variant value)
-    {
-        if (IsNodeReady())
-        {
-            if (!n.IsNodeReady() && n != null)
-            {
-                "Node is not ready. Awaiting...".ToConsole();
-                await ToSignal(this, SignalName.Ready);
-                "Node is ready.".ToConsole();
-                n.Set(property, value);
-                $"\t{property} = {n.Get(property)} set".ToConsole();
-            }
-            else
-            {
-                $"Node is ready.".ToConsole();
-                n.Set(property, value);
-                $"\t{property} = {value} set".ToConsole();
-            }
-        }
-    }
-
-    async Task<Variant> GetWhenReady(Node n, StringName property)
-    {
-        if (!n.IsNodeReady())
-        {
-            "Node is not ready. Awaiting...".ToConsole();
-            await ToSignal(this, SignalName.Ready);
-            "Node is ready.".ToConsole();
-            $"\t{property} get.".ToConsole();
-            return n.Get(property);
-
-        }
-        else
-        {
-            $"Node is ready.".ToConsole();
-            $"\t{property} get.".ToConsole();
-            return n.Get(property);
-        }
-    }
-
-    // Called every frame. 'delta' is the elapsed time since the previous frame.
-    public override void _Process(double delta)
-    {
-        int v = 0;
-        TweenGizmo();
-        TweenCameraToMarker();
-        SetOffsetPosition();
-        SetRotationPivot();
-
-        //DbgStr_ConsoleDebug();
-    }
-
+    /// <summary>
+    /// Prints a table with values.
+    /// </summary>
     private void DbgStr_ConsoleDebug()
     {
         var table = new ConsoleTable("Name", "X", "Y", "Z");
         table
             .AddRow("Camera Global Position", GlobalPosition.X, GlobalPosition.Y, GlobalPosition.Z)
             .AddRow("Offset Pivot Position", offsetPivot.GlobalPosition.X, offsetPivot.GlobalPosition.Y, offsetPivot.GlobalPosition.Z)
-            .AddRow("SpringArm Distance", Distance, 0, 0)
+            .AddRow("SpringArm Distance", SpringArmDistance, 0, 0)
             .AddRow("Rotation Pivot Position", rotationPivot.GlobalPosition.X, rotationPivot.GlobalPosition.Y, rotationPivot.GlobalPosition.Z)
             .AddRow("Rotation Pivot Angle", rotationPivot.GlobalRotationDegrees.X, rotationPivot.GlobalRotationDegrees.Y, rotationPivot.GlobalRotationDegrees.Z);
         table.ToString().ToConsole();
     }
 
-    public override void _Ready()
+    private static SignalManager SignalManager
     {
-        CallDeferred(MethodName.CreateTree);
+        get
+        {
+            return SignalManager.Get();
+        }
     }
-}
-
-// Debugging
-public partial class AngelCamera
-{
-    private static SignalManager SignalManager { get => SignalManager.Get(); }
 
     private void AngelCamera_ChildExitingTree(Node node) => SignalManager.DbgMsg_ChildExitingTree(this, node);
 
