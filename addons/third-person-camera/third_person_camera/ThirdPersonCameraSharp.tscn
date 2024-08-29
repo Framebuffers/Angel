@@ -1,7 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://wmf2eu0uuhrg"]
+[gd_scene load_steps=7 format=3 uid="uid://bh5etw3ieycn1"]
 
-[ext_resource type="Script" path="res://AngelCamera.cs" id="1_ia3g7"]
-[ext_resource type="Script" path="res://addons/third-person-camera/third_person_camera/CameraShake.gd" id="2_y3uk4"]
+[ext_resource type="Script" path="res://ThirdPersonCamera.cs" id="1_da7ry"]
+[ext_resource type="Script" path="res://addons/third-person-camera/third_person_camera/CameraShake.gd" id="5_58vtk"]
 
 [sub_resource type="SeparationRayShape3D" id="SeparationRayShape3D_84uqy"]
 margin = 1.135
@@ -19,27 +19,7 @@ top_radius = 0.0
 height = 0.938
 
 [node name="ThirdPersonCamera" type="Node3D"]
-script = ExtResource("1_ia3g7")
-ProjectionType = null
-Fov = null
-Near = null
-Far = null
-KeepAspect = null
-DopplerTracking = null
-CullMask = null
-EnableGizmo = null
-PivotOffset = null
-TiltLowerLimit = null
-TiltUpperLimit = null
-HorizontalRotationSensitivity = null
-TiltSensitivity = null
-HorizontalRotationAngle = null
-CameraTiltAngle = null
-CameraSpeed = null
-InitialDiveAngle = null
-SpringArmCollissionMask = null
-SpringArmCollissionMargin = null
-SpringArmDistance = null
+script = ExtResource("1_da7ry")
 
 [node name="RotationPivot" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 0, 0)
@@ -61,7 +41,7 @@ visible = false
 mesh = SubResource("SphereMesh_ag7lb")
 
 [node name="CameraShaker" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
-script = ExtResource("2_y3uk4")
+script = ExtResource("5_58vtk")
 camera = NodePath("../Camera")
 
 [node name="Camera" type="Camera3D" parent="."]
@@ -72,3 +52,5 @@ top_level = true
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0.570638)
 visible = false
 mesh = SubResource("CylinderMesh_ybkhn")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Camera"]
