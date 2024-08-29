@@ -1,0 +1,48 @@
+[gd_scene load_steps=5 format=3 uid="uid://b4knbat6galx3"]
+
+[ext_resource type="Script" path="res://AngelCamera.cs" id="1_crppx"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_iomxt"]
+radius = 0.25
+height = 0.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sx32w"]
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_x0puc"]
+top_radius = 0.0
+height = 1.0
+
+[node name="ThirdPersonCamera" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 3.015, 2.14)
+script = ExtResource("1_crppx")
+HorizontalRotationSensitivity = 1.0
+SpringArmCollissionMask = 1
+SpringArmCollissionMargin = 0.1
+SpringArmDistance = 2.365
+
+[node name="RotationPivot" type="Node3D" parent="."]
+
+[node name="OffsetPivot" type="Node3D" parent="RotationPivot"]
+
+[node name="CameraSpringArm" type="SpringArm3D" parent="RotationPivot/OffsetPivot"]
+spring_length = 1.385
+
+[node name="CameraMarker" type="Marker3D" parent="RotationPivot/OffsetPivot/CameraSpringArm"]
+
+[node name="PivotDebug" type="MeshInstance3D" parent="RotationPivot/OffsetPivot"]
+mesh = SubResource("SphereMesh_iomxt")
+surface_material_override/0 = SubResource("StandardMaterial3D_sx32w")
+
+[node name="Camera" type="Camera3D" parent="."]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Camera"]
+transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 5.96046e-08, 1, 0, 0, 0)
+
+[node name="PivotDebug" type="MeshInstance3D" parent="Camera"]
+transform = Transform3D(1.00235, 0, 0, 0, -5.96046e-08, -1.00235, 0, 1.00235, -5.96046e-08, 0, 0, 0)
+mesh = SubResource("CylinderMesh_x0puc")
+skeleton = NodePath("../..")
+
+[connection signal="child_entered_tree" from="." to="." method="Enter"]
+[connection signal="child_exiting_tree" from="." to="." method="Exit"]

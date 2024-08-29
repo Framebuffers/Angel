@@ -2,7 +2,8 @@
 
 [ext_resource type="Script" path="res://TestScenes/Test.cs" id="1_vfb17"]
 [ext_resource type="Script" path="res://TestScenes/Ball.cs" id="2_6wy4h"]
-[ext_resource type="Script" path="res://Objects/Camera.cs" id="3_617h4"]
+[ext_resource type="Script" path="res://AngelCamera.cs" id="3_jr33o"]
+[ext_resource type="PackedScene" uid="uid://wmf2eu0uuhrg" path="res://addons/third-person-camera/third_person_camera/ThirdPersonCamera.tscn" id="3_yotrm"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wkxoa"]
 size = Vector3(5, 0.1, 5)
@@ -13,10 +14,6 @@ size = Vector3(5, 0.1, 5)
 [sub_resource type="SphereShape3D" id="SphereShape3D_6ibdv"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_tqq3l"]
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_x0puc"]
-top_radius = 0.0
-height = 1.0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_dagxh"]
 
@@ -38,8 +35,10 @@ mesh = SubResource("BoxMesh_sgu3b")
 skeleton = NodePath("../..")
 
 [node name="Ball" type="CharacterBody3D" parent="."]
-transform = Transform3D(1.00235, 0, 0, 0, 1.00235, 0, 0, 0, 1.00235, 0.8, 0.64, 0.27)
+transform = Transform3D(1.00235, 0, 0, 0, 1.00235, 0, 0, 0, 1.00235, 0.815, 0.64, 0.27)
 script = ExtResource("2_6wy4h")
+Speed = 3
+FallAcceleration = 10
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ball"]
 shape = SubResource("SphereShape3D_6ibdv")
@@ -50,16 +49,28 @@ skeleton = NodePath("../..")
 
 [node name="Pivot" type="Node3D" parent="Ball"]
 
-[node name="Camera" type="Node3D" parent="Ball"]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 2.5, 2.5)
-script = ExtResource("3_617h4")
-
-[node name="DebugGizmo" type="MeshInstance3D" parent="Ball/Camera"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
-mesh = SubResource("CylinderMesh_x0puc")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Ball/Camera"]
-transform = Transform3D(1, 0, 0, 0, 1, -8.9407e-08, 0, 1.19209e-07, 1, 0, 0, 0)
+[node name="ThirdPersonCamera" parent="Ball" instance=ExtResource("3_yotrm")]
+script = ExtResource("3_jr33o")
+ProjectionType = 0
+Fov = 75.0
+Near = 0.05
+Far = 4000.0
+KeepAspect = 1
+DopplerTracking = 0
+CullMask = 1048575
+EnableGizmo = true
+PivotOffset = Vector2(0, 0)
+TiltLowerLimit = -60.0
+TiltUpperLimit = 60.0
+HorizontalRotationSensitivity = 10.0
+TiltSensitivity = 10.0
+HorizontalRotationAngle = -45.0
+CameraTiltAngle = 0.0
+CameraSpeed = 0.1
+InitialDiveAngle = -45.0
+SpringArmCollissionMask = 0
+SpringArmCollissionMargin = 0.0
+SpringArmDistance = 0.0
 
 [node name="StaticBody3D" type="StaticBody3D" parent="."]
 transform = Transform3D(1.02427, 0, 0, 0, 1.02427, 0, 0, 0, 1.02427, -0.85, 0.562134, 0)
@@ -84,16 +95,3 @@ surface_material_override/0 = SubResource("StandardMaterial3D_3b6d8")
 [connection signal="tree_exited" from="." to="." method="OnExitedTree"]
 [connection signal="tree_exiting" from="." to="." method="OnTreeExiting"]
 [connection signal="visibility_changed" from="." to="." method="OnVisibilityChanged"]
-[connection signal="child_entered_tree" from="Ball/Camera" to="Ball/Camera" method="Enter"]
-[connection signal="child_exiting_tree" from="Ball/Camera" to="Ball/Camera" method="Exit"]
-[connection signal="child_order_changed" from="Ball/Camera" to="." method="OnOrderChanged"]
-[connection signal="editor_description_changed" from="Ball/Camera" to="." method="OnEditorDescriptionChanged"]
-[connection signal="property_list_changed" from="Ball/Camera" to="." method="OnPropertyListChanged"]
-[connection signal="ready" from="Ball/Camera" to="." method="OnReady"]
-[connection signal="renamed" from="Ball/Camera" to="." method="OnRenamed"]
-[connection signal="replacing_by" from="Ball/Camera" to="." method="OnReplacing"]
-[connection signal="script_changed" from="Ball/Camera" to="." method="OnScriptChanged"]
-[connection signal="tree_entered" from="Ball/Camera" to="." method="OnEnteredTree"]
-[connection signal="tree_exited" from="Ball/Camera" to="." method="OnExitedTree"]
-[connection signal="tree_exiting" from="Ball/Camera" to="." method="OnTreeExiting"]
-[connection signal="visibility_changed" from="Ball/Camera" to="." method="OnVisibilityChanged"]

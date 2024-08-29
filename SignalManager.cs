@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ThirdPersonCamera.Helpers
+namespace Angel.Helpers
 {
     /// <summary>
     /// Hooks into Godot signals and offers several boilerplate functions.

@@ -1,0 +1,58 @@
+[gd_scene load_steps=6 format=3 uid="uid://b4knbat6galx3"]
+
+[ext_resource type="Script" path="res://AngelCamera.cs" id="1_crppx"]
+
+[sub_resource type="SeparationRayShape3D" id="SeparationRayShape3D_84uqy"]
+margin = 1.135
+slide_on_slope = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2bjii"]
+albedo_color = Color(0.8, 0.686275, 0.215686, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_ag7lb"]
+material = SubResource("StandardMaterial3D_2bjii")
+radius = 0.05
+height = 0.1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ybkhn"]
+top_radius = 0.0
+height = 0.938
+
+[node name="ThirdPersonCamera" type="Node3D"]
+script = ExtResource("1_crppx")
+
+[node name="RotationPivot" type="Node3D" parent="."]
+transform = Transform3D(0.999609, 0.0196848, -0.0197122, 0, 0.707515, 0.706511, 0.0278615, -0.706249, 0.707229, 0, 0, 0)
+top_level = true
+
+[node name="OffsetPivot" type="Node3D" parent="RotationPivot"]
+transform = Transform3D(1.00105, -2.38232e-06, -4.72441e-05, 2.5548e-05, 1.00248, 0.00270599, 6.00107e-05, 0.00119126, 1.00279, 0, 0, 0)
+
+[node name="CameraSpringArm" type="SpringArm3D" parent="RotationPivot/OffsetPivot"]
+process_priority = 11
+collision_mask = 0
+shape = SubResource("SeparationRayShape3D_84uqy")
+spring_length = 5.0
+
+[node name="CameraMarker" type="Marker3D" parent="RotationPivot/OffsetPivot/CameraSpringArm"]
+transform = Transform3D(0.997957, 2.17948e-05, 0.000166427, 0.000180984, 0.99987, 4.38988e-05, 0.000401739, -0.000197738, 1.00018, 0.0986374, -0.0124927, 4.98583)
+
+[node name="PivotDebug" type="MeshInstance3D" parent="RotationPivot/OffsetPivot"]
+mesh = SubResource("SphereMesh_ag7lb")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 3.53553, 3.53553)
+top_level = true
+keep_aspect = 0
+current = true
+fov = 90.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Camera"]
+transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 5.96046e-08, 1, 0, 0, 0)
+
+[node name="CameraDebug" type="MeshInstance3D" parent="Camera"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+mesh = SubResource("CylinderMesh_ybkhn")
+
+[connection signal="child_entered_tree" from="." to="." method="Enter"]
+[connection signal="child_exiting_tree" from="." to="." method="Exit"]

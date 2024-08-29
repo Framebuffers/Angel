@@ -1,5 +1,5 @@
-using ThirdPersonCamera;
-using ThirdPersonCamera.Helpers;
+using Angel;
+using Angel.Helpers;
 using Godot;
 using System;
 using System.Runtime.CompilerServices;
