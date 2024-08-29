@@ -8,6 +8,11 @@ public partial class Test : Node3D
 {
     private SignalManager SignalManager { get => SignalManager.Get(); }
     // Called when the node enters the scene tree for the first time.
+
+    public override void _EnterTree()
+    {
+        
+    }
     public override void _Ready()
     {
         //CallDeferred(MethodName.BindSignalsToManager, SignalManager);
@@ -17,11 +22,33 @@ public partial class Test : Node3D
     public override void _Process(double delta)
     {
     }
+
+    //async void WaitForNode(Node n /*StringName property, Variant value*/)
+    //{
+    //    if (!n.IsNodeReady())
+    //    {
+    //        "Node is not ready. Awaiting...".ToConsole();
+    //        await ToSignal(n.GetTree(), SignalName.Ready);
+    //        "Node is ready.".ToConsole();
+    //        //n.Set(property, value);
+    //    }
+    //    else
+    //    {
+    //        "Node is ready.".ToConsole();
+    //        //n.Set(property, value);
+    //    }
+    //}
+
+    // Node3D
     protected virtual void OnVisibilityChanged() => SignalManager.DbgMsg_VisibilityChanged(this);
-    protected virtual void OnChildEnteredTree(Node node) => SignalManager.DbgMsg_ChildEnteringTree(this, node);
+    protected virtual void OnChildEnteredTree(Node node)
+    {
+        SignalManager.DbgMsg_ChildEnteringTree(this, node);
+    }
 
     protected virtual void OnChildExitingTree(Node node) => SignalManager.DbgMsg_ChildExitingTree(this, node);
 
+    // Node
     protected virtual void OnOrderChanged() => SignalManager.DbgMsg_OrderChanged(this);
 
     protected virtual void OnEditorDescriptionChanged(Node node) => SignalManager.DbgMsg_EditorDescriptionChanged(this, node);
@@ -40,6 +67,7 @@ public partial class Test : Node3D
 
     protected virtual void OnTreeExiting() => SignalManager.DbgMsg_Exiting(this);
 
+    // Object
     protected virtual void OnPropertyListChanged() => SignalManager.DbgMsg_PropertyChanged(this);
 
     protected virtual void OnScriptChanged() => SignalManager.DbgMsg_ScriptChanged(this);

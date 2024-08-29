@@ -1,6 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://cnu0q6higqgoj"]
+[gd_scene load_steps=9 format=3 uid="uid://cnu0q6higqgoj"]
 
 [ext_resource type="Script" path="res://TestScenes/Test.cs" id="1_vfb17"]
+[ext_resource type="Script" path="res://TestScenes/Ball.cs" id="2_6wy4h"]
+[ext_resource type="Script" path="res://AngelCamera.cs" id="3_jr33o"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wkxoa"]
 size = Vector3(5, 0.1, 5)
@@ -11,6 +13,10 @@ size = Vector3(5, 0.1, 5)
 [sub_resource type="SphereShape3D" id="SphereShape3D_6ibdv"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_tqq3l"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_x0puc"]
+top_radius = 0.0
+height = 1.0
 
 [node name="Test" type="Node3D"]
 script = ExtResource("1_vfb17")
@@ -24,8 +30,9 @@ shape = SubResource("BoxShape3D_wkxoa")
 mesh = SubResource("BoxMesh_sgu3b")
 skeleton = NodePath("../..")
 
-[node name="Ball" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+[node name="Ball" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.105, 0.57, 0.8)
+script = ExtResource("2_6wy4h")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ball"]
 shape = SubResource("SphereShape3D_6ibdv")
@@ -33,6 +40,21 @@ shape = SubResource("SphereShape3D_6ibdv")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ball/CollisionShape3D"]
 mesh = SubResource("SphereMesh_tqq3l")
 skeleton = NodePath("../..")
+
+[node name="Pivot" type="Node3D" parent="Ball"]
+
+[node name="Camera" type="Node3D" parent="Ball"]
+transform = Transform3D(-0.748447, 0.288321, -0.635601, 0, 0.931969, 0.42276, 0.697938, 0.309187, -0.681599, -1.82, 0.65, -0.605)
+script = ExtResource("3_jr33o")
+EnableGizmo = false
+InitialDiveAngle = 2.421
+TiltLowerLimit = -29.638
+TiltUpperLimit = -54.941
+Distance = 2.965
+
+[node name="DebugGizmo" type="MeshInstance3D" parent="Ball/Camera"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+mesh = SubResource("CylinderMesh_x0puc")
 
 [connection signal="child_entered_tree" from="." to="." method="OnChildEnteredTree"]
 [connection signal="child_exiting_tree" from="." to="." method="OnChildExitingTree"]
@@ -47,3 +69,16 @@ skeleton = NodePath("../..")
 [connection signal="tree_exited" from="." to="." method="OnExitedTree"]
 [connection signal="tree_exiting" from="." to="." method="OnTreeExiting"]
 [connection signal="visibility_changed" from="." to="." method="OnVisibilityChanged"]
+[connection signal="child_entered_tree" from="Ball/Camera" to="Ball/Camera" method="Enter"]
+[connection signal="child_exiting_tree" from="Ball/Camera" to="Ball/Camera" method="Exit"]
+[connection signal="child_order_changed" from="Ball/Camera" to="." method="OnOrderChanged"]
+[connection signal="editor_description_changed" from="Ball/Camera" to="." method="OnEditorDescriptionChanged"]
+[connection signal="property_list_changed" from="Ball/Camera" to="." method="OnPropertyListChanged"]
+[connection signal="ready" from="Ball/Camera" to="." method="OnReady"]
+[connection signal="renamed" from="Ball/Camera" to="." method="OnRenamed"]
+[connection signal="replacing_by" from="Ball/Camera" to="." method="OnReplacing"]
+[connection signal="script_changed" from="Ball/Camera" to="." method="OnScriptChanged"]
+[connection signal="tree_entered" from="Ball/Camera" to="." method="OnEnteredTree"]
+[connection signal="tree_exited" from="Ball/Camera" to="." method="OnExitedTree"]
+[connection signal="tree_exiting" from="Ball/Camera" to="." method="OnTreeExiting"]
+[connection signal="visibility_changed" from="Ball/Camera" to="." method="OnVisibilityChanged"]
