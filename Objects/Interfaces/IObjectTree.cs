@@ -10,6 +10,8 @@ namespace ThirdPersonCamera.Objects.Interfaces
     internal interface IObjectTree
     {
         Camera3D GetCamera();
+        SpringArm3D GetSpringArm();
         void TweenCameraToPlayer();
+        void SetWhenReady(Node target, StringName property, object value);
     }
 }

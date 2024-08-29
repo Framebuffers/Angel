@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Angel.Objects;
 
 namespace ThirdPersonCamera.Objects
 {
-    internal partial class ObjectTree : Node3D, IObjectTree
+    internal sealed partial class ObjectTree : Node3D, IObjectTree
     {
         private Node3D _parent;
         private Camera3D _camera;
@@ -35,7 +36,7 @@ namespace ThirdPersonCamera.Objects
             // Populate fields with new objects.
             _camera = new Camera3D();
             _cameraMarker = new Marker3D();
-            _springArm = new SpringArm3D();
+            _springArm = new CameraDistance(this);
             _rotationPivot = new Node3D();
             _offsetPivot = new Node3D();
 
@@ -56,6 +57,7 @@ namespace ThirdPersonCamera.Objects
         }
 
         public Camera3D GetCamera() => _camera;
+        public SpringArm3D GetSpringArm() => _springArm;
 
         public void TweenCameraToPlayer()
         {
@@ -68,6 +70,27 @@ namespace ThirdPersonCamera.Objects
                     target,
                     0.1f);
                 _tween.Play();
+            }
+        }
+
+        public async void SetWhenReady(Node target, StringName property, object value)
+        {
+            if (IsNodeReady())
+            {
+                if (!target.IsNodeReady() && target != null)
+                {
+                    "Node is not ready. Awaiting...".ToConsole();
+                    await ToSignal(this, SignalName.Ready);
+                    "Node is ready.".ToConsole();
+                    target.Set(property, (Variant)value);
+                    $"\t{property} = {target.Get(property)} set".ToConsole();
+                }
+                else
+                {
+                    $"Node is ready.".ToConsole();
+                    target.Set(property, (Variant)value);
+                    $"\t{property} = {value} set".ToConsole();
+                }
             }
         }
     }
