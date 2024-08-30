@@ -34,7 +34,7 @@ mesh = SubResource("BoxMesh_sgu3b")
 skeleton = NodePath("../..")
 
 [node name="Ball" type="CharacterBody3D" parent="."]
-transform = Transform3D(1.00235, 0, 0, 0, 1.00235, 0, 0, 0, 1.00235, 1.06683, 0.64, 0.27)
+transform = Transform3D(1.00235, 0, 0, 0, 1.00235, 0, 0, 0, 1.00235, 0, 0.551175, 0)
 script = ExtResource("2_6wy4h")
 Speed = 3
 FallAcceleration = 10
@@ -49,6 +49,9 @@ skeleton = NodePath("../..")
 [node name="Pivot" type="Node3D" parent="Ball"]
 
 [node name="ThirdPersonCamera" parent="Ball" instance=ExtResource("3_x2bbp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.43839, 0)
+KeepAspect = 0
+FOV = 57.843
 
 [node name="StaticBody3D" type="StaticBody3D" parent="."]
 transform = Transform3D(1.02427, 0, 0, 0, 1.02427, 0, 0, 0, 1.02427, -0.85, 0.562134, 0)

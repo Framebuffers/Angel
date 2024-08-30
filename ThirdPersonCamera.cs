@@ -179,7 +179,7 @@ namespace TPC
         public Vector2 PivotOffset { get; set; } = Vector2.Zero;
 
         [Export(PropertyHint.Range, "-90.0,90.0")]
-        private float initialDiveAngleDeg;
+        private float initialDiveAngleDeg = -45.0f;
         public float InitialDiveAngleDeg
         {
             get
@@ -318,6 +318,7 @@ namespace TPC
 
         private void UpdateEditor()
         {
+            if (camera == null) LoadNodes();
             // init new vector with Z=1.0
             Vector3 initialPosition = new(0.0f, 0.0f, 1.0f);
 
